@@ -1,0 +1,674 @@
+swagger: '2.0'
+info:
+  version: v1
+  title: 用户中心v1接口
+  description: 用户中心v1接口
+  termsOfService: http://dealmoon.com
+basePath: /v1
+host: 127.0.0.1:8080
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - dm_token: []
+  - dm_udid: []
+  - dm_type: []
+  - dm_ip: []
+  - dm_from: []
+securityDefinitions:
+  dm_token:
+    type: apiKey
+    in: query
+    name: dm_token
+  dm_udid:
+    type: apiKey
+    in: query
+    name: dm_udid
+  dm_type:
+    type: apiKey
+    in: query
+    name: dm_type
+  dm_ip:
+    type: apiKey
+    in: query
+    name: dm_ip
+  dm_from:
+    type: apiKey
+    in: query
+    name: dm_from
+paths:
+  /user/captcha:
+    get:
+      parameters:
+      - name: email
+        in: query
+        description: 用户email
+        required: true
+        type: string
+      description: 通过email生成用户验证码
+      responses:
+        default:
+          description: successful operation
+          schema:
+            format: binary
+  /user/check:
+    post:
+      parameters:
+      - name: body
+        in: body
+        description: 检查用户名和eamil是否重复
+        schema:
+          type: object
+          properties:
+            name:
+              description: 用户名
+              type: string
+            email:
+              description: 用户email
+              type: string
+      description: 检查用户email和用户名是否已使用
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/result'
+  /user/info:
+    get:
+      description: 通过token获取用户信息
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/userInfo'
+  /user/logout:
+    get:
+      description: 用户退出
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/result'
+  /user/login:
+    post:
+      parameters:
+      - name: body
+        in: body
+        description: 登录
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              description: 邮件地址
+              type: string
+            password:
+              type: string
+              description: 密码
+            code:
+              type: string
+              description: 验证码
+            bindInfo:
+              $ref: '#/definitions/ACCOUNT'
+      description: 用户登录
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/loginInfo'
+  /user/register:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          required:
+            - userInfo
+          properties:
+            userInfo:
+              $ref: '#/definitions/REGISTER_USER'
+            newsletter:
+              type: integer
+              enum:
+                - 0
+                - 1
+            bindInfo:
+              $ref: '#/definitions/ACCOUNT'
+      description: 用户注册
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/loginInfo'
+  /user/update:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          properties:
+            name:
+              description: 用户名
+              type: string
+            password:
+              $ref: '#/definitions/UPDATE_PASSWORD'
+            email:
+              description: 邮箱
+              type: string
+            avatar:
+              type: string
+              description: 头像地址
+            sex:
+              type: string
+              description: 性别
+              enum:
+                - men
+                - women
+                - secret
+            birthday:
+              type: string
+              description: 生日
+            language:
+              type: string
+              description: 设置语言
+              enum:
+                - cn
+                - en
+            mobile:
+              type: string
+              description: 手机号码
+            introduce:
+              type: string
+              description: 简介
+            location:
+              type: string
+              description: 居住地址
+            status:
+              type: string
+              description: 用户状态
+              enum:
+                - active
+                - N-active
+      description: 修改用户信息
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/userInfo'
+  /user/forgetpassword:
+    post:
+      parameters:
+      - name: body
+        in: body
+        description: 用户email
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+      description: 用户忘记密码
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/result'
+  /user/sendactivemail:
+    post:
+      parameters:
+      - name: body
+        in: body
+        description: 其它邮箱
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+      description: 发送验证邮件
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/result'  
+  /user/bind:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          properties:
+            bindInfo:
+              $ref: '#/definitions/ACCOUNT'    
+      description: 绑定第三方账号
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/userInfo'
+  /user/unbind:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          properties:
+            bindInfo:
+              $ref: '#/definitions/ACCOUNT'
+      description: 解绑第三方账号
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/userInfo'
+  /user/verifyCode:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          properties:
+            verify:
+              type: string
+      description: 验证找回密码和激活邮件中的code
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/result'
+  /user/updateByVerify:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          properties:
+            verify:
+              type: string
+            password:
+              type: string
+            status:
+              type: string
+      description: 通过verify修改密码 
+      responses:
+        default:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/result'
+  /user/getInfoById:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          required:
+            - ids
+          properties:
+            ids:
+              description: 要获取用户信息的用户的ids
+              type: array
+              items:
+                type: integer
+      description: 通过verify修改密码 
+      responses:
+        default:
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/USER_ENTITY'
+  /user/updatePostNum:
+    post:
+      parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          required:
+            - userId
+            - allPostNum
+            - postNum
+            - lastPostTime
+          properties:
+            userId:
+              description: 用户id
+              type: integer
+            allPostNum:
+              description: 用户总的晒货数量
+              type: integer
+            postNum:
+              description: 用户通过审核的晒货数量
+              type: integer
+            lastPostTime:
+              description: 用户最后一次的晒货时间
+              type: integer
+            country:
+              type: string
+      description: 晒货时更新user_data表中总的晒货数量 
+      responses:
+        default:
+          description: successful operation
+definitions:
+  ERROR:
+    type: object
+    required:
+      - code
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+  ACCOUNT:
+    type: object
+    required:
+      - openId
+    properties:
+      openId:
+        type: string
+      type:
+        type: string
+        enum:
+          - sina
+          - qq
+          - renren
+          - douban
+          - facebook
+          - twitter
+          - wechat
+      unionid:
+        type: string
+        description: 微信使用的unionid
+      nickname:
+        type: string
+  MEDALCONDITION:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: integer
+      medalId:
+        type: integer
+      conditionName:
+        type: string
+      conditionKey:
+        type: string
+      conditionMode:
+        type: integer
+      conditionValue:
+        type: integer
+  MEDAL:
+    type: object
+    properties:
+      id:
+        type: integer
+      medalName:
+        type: string
+      medalType:
+        type: integer
+      medalAlias:
+        type: string
+      medalDesc:
+        type: string
+      iconUrl:
+        type: string
+      miniIconUrl:
+        type: string
+      msgIconUrl:
+        type: string
+      iconUrl3x:
+        type: string
+      miniIconUrl3x:
+        type: string
+      msgIconUrl3x:
+        type: string
+      createEditorId:
+        type: integer
+      createEditorName:
+        type: string
+      updateEditorId:
+        type: integer
+      updateEditorName:
+        type: string
+      createTime:
+        type: integer
+      updateTime:
+        type: integer
+      onlineTime:
+        type: integer
+      offlineTime:
+        type: integer
+      approvalNum:
+        type: integer
+      medalConditions:
+        type: array
+        items: 
+          $ref: '#/definitions/MEDALCONDITION'
+      status:
+        type: integer
+  USER:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: integer
+      isAdmin:
+        type: boolean
+      name:
+        type: string
+      email:
+        type: string
+      status:
+        type: string
+        description: 用户激活状态
+        enum:
+         - active
+         - N-active
+      createTime:
+        type: integer
+      isDefaultAvatar:
+        type: boolean
+      avatar:
+        type: string
+      sex:
+        type: string
+        enum:
+          - men
+          - women
+          - secret
+      birthday:
+        type: string
+      language:
+        type: string
+        enum:
+          - cn
+          - en
+      mobile:
+        type: string
+      introduce:
+        type: string
+      isSubscribingNewsletter:
+        type: integer
+        enum:
+          - 0
+          - 1
+      location:
+        type: string
+      thirdPartyAccounts:
+        type: array
+        items:
+          $ref: '#/definitions/ACCOUNT'
+      medals:
+        type: array
+        items:
+          $ref: '#/definitions/MEDAL'
+  USER_ENTITY:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      passworid:
+        type: string
+      email:
+        type: string
+      status:
+        type: string
+        description: 用户激活状态
+        enum:
+         - active
+         - N-active
+      ip:
+        type: string
+      createTime:
+        type: integer
+      imgUrl:
+        type: string
+      token:
+        type: string
+      tokenExptime:
+        type: integer
+      isDefaultAvatar:
+        type: boolean
+      avatar:
+        type: string
+      sex:
+        type: string
+        enum:
+          - men
+          - women
+          - secret
+      birthday:
+        type: string
+      language:
+        type: string
+        enum:
+          - cn
+          - en
+      mobile:
+        type: string
+      introduce:
+        type: string
+      address:
+        type: string
+      url:
+        type: string
+      repeatname:
+        type: string
+      newsletter:
+        type: string
+      termsAgree:
+        type: string
+      disallowedActions:
+        type: string
+      disallowedExpires:
+        type: integer
+      disallowedAdminName:
+        type: string
+      disallowedBeginExpires:
+        type: integer
+      disallowedAdminAddress:
+        type: string
+      disallowedAdminRemark:
+        type: string
+      threeRegister:
+        type: boolean
+      lastRetrieveTime:
+        type: string
+      lastRetrieveActivityTime:
+        type: string
+      postNum:
+        type: integer
+      postRecommendNum:
+        type: integer
+      followNum:
+        type: integer
+      fansNum:
+        type: integer
+      favoriteNum:
+        type: integer
+      likeNum:
+        type: integer
+      score:
+        type: integer
+      gold:
+        type: integer
+      vip:
+        type: boolean
+      lastPostTime:
+        type: string
+      guideNum:
+        type: integer
+  REGISTER_USER:
+    type: object
+    required:
+      - name
+      - email
+      - password
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+  UPDATE_PASSWORD:
+    type: object
+    required:
+      - oldPassword
+      - newPassword
+    properties:
+      oldPassword:
+        type: string
+      newPassword:
+        type: string
+  userInfo :
+    type: object
+    required : 
+      - result
+    properties:
+      result:
+        $ref: '#/definitions/ERROR'
+      userInfo:
+        $ref: '#/definitions/USER'
+  loginInfo :
+    type: object
+    required : 
+      - result
+      - token
+    properties:
+      result:
+        $ref: '#/definitions/ERROR'
+      userInfo:
+        $ref: '#/definitions/USER'
+      token:
+        type: string
+      showCaptcha:
+        description: 展示验证码
+        type: boolean
+        enum:
+          - true
+          - false
+  result:
+    type: object
+    required : 
+      - result
+    properties:
+      result:
+        $ref: '#/definitions/ERROR'
+  
